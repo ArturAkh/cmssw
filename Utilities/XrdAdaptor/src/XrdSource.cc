@@ -193,6 +193,7 @@ Source::Source(timespec now, std::unique_ptr<XrdCl::File> fh, const std::string 
 //, m_slow(true)
 #endif
 {
+  edm::LogInfo("XRD ARTUR SOURCE") << "**** START Source::Source ****" << std::endl;
   if (m_fh.get()) {
     if (!m_fh->GetProperty("DataServer", m_id)) {
       edm::LogWarning("XrdFileWarning") << "Source::Source() failed to determine data server name.'";
@@ -216,6 +217,7 @@ Source::Source(timespec now, std::unique_ptr<XrdCl::File> fh, const std::string 
   if (statsService) {
     m_stats = statsService->getStatisticsForSite(m_site);
   }
+  edm::LogInfo("XRD ARTUR SOURCE") << "**** FINISH Source::Source ****" << std::endl;
 }
 
 bool Source::getHostname(const std::string &id, std::string &hostname) {
@@ -381,6 +383,7 @@ static void validateList(const XrdCl::ChunkList &cl) {
 }
 
 void Source::handle(std::shared_ptr<ClientRequest> c) {
+  edm::LogInfo("XRD ARTUR SOURCE") << "**** START Source::handle ****" << std::endl;
   edm::LogVerbatim("XrdAdaptorInternal") << "Reading from " << ID() << ", quality " << m_qm->get() << std::endl;
   c->m_source = shared_from_this();
   c->m_self_reference = c;
@@ -415,4 +418,5 @@ void Source::handle(std::shared_ptr<ClientRequest> c) {
     ex.addContext("Calling Source::handle");
     throw ex;
   }
+  edm::LogInfo("XRD ARTUR SOURCE") << "**** FINISH Source::handle ****" << std::endl;
 }

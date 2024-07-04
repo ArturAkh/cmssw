@@ -56,6 +56,7 @@ void XrdFile::open(const std::string &name, int flags /* = IOFlags::OpenRead */,
 }
 
 void XrdFile::open(const char *name, int flags /* = IOFlags::OpenRead */, int perms /* = 066 */) {
+  edm::LogInfo("XRD ARTUR XrdFile::open") << "**** START XrdFile::open ***" << std::endl;
   // Actual open
   if ((name == nullptr) || (*name == 0)) {
     edm::Exception ex(edm::errors::FileOpenError);
@@ -150,6 +151,7 @@ void XrdFile::open(const char *name, int flags /* = IOFlags::OpenRead */, int pe
   for (auto const &it : sources)
     ss << it << ", ";
   edm::LogInfo("XrdFileInfo") << ss.str();
+  edm::LogInfo("XRD ARTUR XrdFile::open") << "**** FINISH XrdFile::open ***" << std::endl;
 }
 
 void XrdFile::close() {

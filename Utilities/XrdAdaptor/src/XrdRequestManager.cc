@@ -131,6 +131,7 @@ namespace {
   }
 
   void tracerouteRedirections(const XrdCl::HostList *hostList) {
+    edm::LogInfo("XRD ARTUR RequestManager") << "**** START tracerouteRedirections ****" << std::endl;
     edm::LogInfo("XrdAdaptorLvl2").log([hostList](auto &li) {
       int idx_redirection = 1;
       li << "-------------------------------\nTraceroute:\n";
@@ -163,6 +164,7 @@ namespace {
       }
       li.format("-------------------------------");
     });
+    edm::LogInfo("XRD ARTUR RequestManager") << "**** FINISH tracerouteRedirections ****" << std::endl;
   }
 }  // namespace
 
@@ -178,6 +180,7 @@ RequestManager::RequestManager(const std::string &filename, XrdCl::OpenFlags::Fl
       m_excluded_active_count(0) {}
 
 void RequestManager::initialize(std::weak_ptr<RequestManager> self) {
+    edm::LogInfo("XRD ARTUR RequestManager") << "**** START RequestManager::initialize ****" << std::endl;
   m_open_handler = OpenHandler::getInstance(self);
 
   XrdCl::Env *env = XrdCl::DefaultEnv::GetEnv();
@@ -204,6 +207,7 @@ void RequestManager::initialize(std::weak_ptr<RequestManager> self) {
     std::string new_filename =
         m_name + (!opaque.empty() ? ((m_name.find('?') == m_name.npos) ? "?" : "&") + opaque : "");
     SyncHostResponseHandler handler;
+    edm::LogInfo("XRD ARTUR RequestManager") << "Opening file" << std::endl;
     XrdCl::XRootDStatus openStatus = file->Open(new_filename, m_flags, m_perms, &handler);
     if (!openStatus
              .IsOK()) {  // In this case, we failed immediately - this indicates we have previously tried to talk to this
@@ -220,7 +224,9 @@ void RequestManager::initialize(std::weak_ptr<RequestManager> self) {
       ex.addAdditionalInfo("Remote server already encountered a fatal error; no redirections were performed.");
       throw ex;
     }
+    edm::LogInfo("XRD ARTUR RequestManager") << "File Open status OK. Waiting for response" << std::endl;
     handler.WaitForResponse();
+    edm::LogInfo("XRD ARTUR RequestManager") << "Got response. Getting status and hostlist info from handler" << std::endl;
     std::unique_ptr<XrdCl::XRootDStatus> status = handler.GetStatus();
     std::unique_ptr<XrdCl::HostList> hostList = handler.GetHosts();
     tracerouteRedirections(hostList.get());
@@ -285,6 +291,7 @@ void RequestManager::initialize(std::weak_ptr<RequestManager> self) {
   m_lastSourceCheck = ts;
   ts.tv_sec += XRD_ADAPTOR_SHORT_OPEN_DELAY;
   m_nextActiveSourceCheck = ts;
+    edm::LogInfo("XRD ARTUR RequestManager") << "**** FINISH RequestManager::initialize ****" << std::endl;
 }
 
 /**
@@ -610,6 +617,7 @@ std::shared_ptr<Source> RequestManager::pickSingleSource() {
 }
 
 std::future<IOSize> RequestManager::handle(std::shared_ptr<XrdAdaptor::ClientRequest> c_ptr) {
+  edm::LogInfo("XRD ARTUR RequestManager") << "**** START RequestManager::handle ****" << std::endl;
   assert(c_ptr.get());
   timespec now;
   GET_CLOCK_MONOTONIC(now);
@@ -633,6 +641,7 @@ std::future<IOSize> RequestManager::handle(std::shared_ptr<XrdAdaptor::ClientReq
 
   std::shared_ptr<Source> source = pickSingleSource();
   source->handle(c_ptr);
+  edm::LogInfo("XRD ARTUR RequestManager") << "**** RETURN from RequestManager::handle ****" << std::endl;
   return c_ptr->get_future();
 }
 
@@ -1072,6 +1081,7 @@ XrdAdaptor::RequestManager::OpenHandler::~OpenHandler() {}
 void XrdAdaptor::RequestManager::OpenHandler::HandleResponseWithHosts(XrdCl::XRootDStatus *status_ptr,
                                                                       XrdCl::AnyObject *,
                                                                       XrdCl::HostList *hostList_ptr) {
+  edm::LogInfo("XRD ARTUR RequestManager") << "**** START OpenHandler::HandleResponseWithHosts ****" << std::endl;
   // Make sure we get rid of the strong self-reference when the callback finishes.
   std::shared_ptr<OpenHandler> self = m_self;
   m_self.reset();
@@ -1120,6 +1130,7 @@ void XrdAdaptor::RequestManager::OpenHandler::HandleResponseWithHosts(XrdCl::XRo
     }
   }
   manager->handleOpen(*status, source);
+  edm::LogInfo("XRD ARTUR RequestManager") << "**** FINISH OpenHandler::HandleResponseWithHosts ****" << std::endl;
 }
 
 std::string XrdAdaptor::RequestManager::OpenHandler::current_source() {
